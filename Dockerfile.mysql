@@ -1,0 +1,12 @@
+# Usa la imagen oficial de MySQL desde Docker Hub
+FROM mysql:latest
+
+# Variables de entorno para configurar la base de datos
+ENV MYSQL_DATABASE=accwe-hospital \
+    MYSQL_ROOT_PASSWORD=root
+
+# Expone el puerto MySQL
+EXPOSE 3306
+
+# Comando para arrancar el servicio MySQL
+CMD ["mysqld"]
