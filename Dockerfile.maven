@@ -1,0 +1,27 @@
+# Etapa de construcción y prueba
+FROM maven:3.8.4 AS builder
+
+WORKDIR /app
+
+# Copia los archivos de configuración y el pom.xml
+COPY pom.xml .
+COPY src ./src
+
+# Ejecuta las pruebas y compila
+RUN mvn test package
+
+# Verifica el resultado de las pruebas
+RUN mvn test || (echo "Pruebas fallidas, abortando la construcción" && exit 1)
+
+# Etapa de compilación y ejecución
+FROM tomcat:latest
+
+WORKDIR /usr/local/tomcat/webapps
+
+# Copia el archivo WAR generado
+COPY --from=builder /app/target/accenture-techhub-0.0.1-SNAPSHOT.war ./ROOT.war
+
+EXPOSE 8080
+
+# Comando para ejecutar el Tomcat y desplegar la aplicación si las pruebas fueron exitosas
+CMD ["catalina.sh", "run"]

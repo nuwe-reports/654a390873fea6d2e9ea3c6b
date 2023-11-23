@@ -51,28 +51,34 @@ public class AppointmentController {
     }
 
     @PostMapping("/appointment")
-    public ResponseEntity<List<Appointment>> createAppointment(@RequestBody Appointment appointment){
-        /** TODO 
-         * Implement this function, which acts as the POST /api/appointment endpoint.
-         * Make sure to check out the whole project. Specially the Appointment.java class
-         */
-        return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT);
+    public ResponseEntity<List<Appointment>> createAppointment(@RequestBody Appointment newAppointment) {
+        // Obtención de todas las citas existentes
+        List<Appointment> existingAppointments = appointmentRepository.findAll();
+
+        if (!newAppointment.getFinishesAt().isAfter(newAppointment.getStartsAt())) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } else {
+            for (Appointment existingAppointment : existingAppointments) {
+                // Check overlaps
+                if (existingAppointment.overlaps(newAppointment)) {
+                    return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE); // Conflicto de tiempo y sala
+                }
+            }
+        }
+        // Save in DB
+        appointmentRepository.save(newAppointment);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
-
-
     @DeleteMapping("/appointments/{id}")
     public ResponseEntity<HttpStatus> deleteAppointment(@PathVariable("id") long id){
 
         Optional<Appointment> appointment = appointmentRepository.findById(id);
-
         if (!appointment.isPresent()){
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-
         appointmentRepository.deleteById(id);
 
         return new ResponseEntity<>(HttpStatus.OK);
-        
     }
 
     @DeleteMapping("/appointments")
